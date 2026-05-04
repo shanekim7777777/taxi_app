@@ -9,6 +9,13 @@
   *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans KR',sans-serif;color:var(--text);}
   header{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:white;padding:28px 18px 24px;border-radius:0 0 28px 28px;box-shadow:0 8px 22px rgba(37,99,235,.25);}
   h1{font-size:24px;margin:0 0 18px;font-weight:800}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.loginOverlay{position:fixed;inset:0;background:linear-gradient(135deg,#1d4ed8,#2563eb);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.loginBox{width:100%;max-width:360px;background:white;border-radius:28px;padding:26px;box-shadow:0 20px 50px rgba(17,24,39,.28);text-align:center}
+.loginBox h2{margin:0 0 8px;font-size:24px}
+.loginBox p{margin:0 0 18px;color:#6b7280;font-size:14px;line-height:1.5}
+.loginBox input{width:100%;text-align:center;font-size:20px;font-weight:800;letter-spacing:4px}
+.loginBox button{width:100%;margin-top:12px;background:#2563eb;color:white}
+.loginError{height:20px;color:#dc2626;font-size:13px;font-weight:800;margin-top:10px}
   select,button,input{font:inherit} select,input{border:1px solid var(--line);border-radius:14px;padding:13px 12px;background:white;min-width:0}
   button{border:0;border-radius:16px;padding:13px 16px;font-weight:800;background:#e5e7eb;color:#111827}
   .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px 14px 10px}.tab{background:white;border:1px solid var(--line);border-radius:18px;padding:13px 6px;text-align:center;font-weight:800}.tab.active{background:#111827;color:#fff}
@@ -24,6 +31,17 @@
 </style>
 </head>
 <body>
+
+<div id="loginOverlay" class="loginOverlay">
+  <div class="loginBox">
+    <h2>택시 일일수입 관리</h2>
+    <p>매일교통(유) 사원용 무료버전<br>비밀번호를 입력하면 사용할 수 있습니다.</p>
+    <input id="loginPass" type="password" inputmode="numeric" placeholder="비밀번호" autocomplete="off">
+    <button onclick="checkLogin()">로그인</button>
+    <div id="loginError" class="loginError"></div>
+  </div>
+</div>
+
 <header>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;"><h1>🚕 택시 일일수입 관리</h1><div style="text-align:right;font-weight:900;font-size:14px;color:#eff6ff;">매일교통(유)<br>사원용 무료버전</div></div>
   <div class="top">
@@ -247,6 +265,7 @@ function saveSettings(){['baseFeeNormal','baseFeeOptional'].forEach(k=>data.sett
 function resetMonth(){if(confirm('이번 달 입력내역을 모두 삭제할까요?')){delete data.entries[key()];localStorage.setItem(K,JSON.stringify(data));renderAll();}}
 function clearAll(){if(confirm('전체 데이터를 삭제할까요?')){localStorage.removeItem(K);location.reload();}}
 init();
+initLogin();
 
 function addCommaFormatting(){
   const ids=['company','cashIncome','total','kakao'];
@@ -262,6 +281,32 @@ function addCommaFormatting(){
     el.addEventListener('focus', e=>{
       el.value = String(el.value||'').replace(/,/g,'');
     });
+  });
+}
+
+
+const APP_PASSWORD='1004';
+function checkLogin(){
+  const pass=$('loginPass').value.trim();
+  if(pass===APP_PASSWORD){
+    sessionStorage.setItem('taxi_login_ok','1');
+    $('loginOverlay').style.display='none';
+    $('loginPass').value='';
+  }else{
+    $('loginError').textContent='비밀번호가 맞지 않습니다.';
+    $('loginPass').value='';
+    $('loginPass').focus();
+  }
+}
+function initLogin(){
+  if(sessionStorage.getItem('taxi_login_ok')==='1'){
+    $('loginOverlay').style.display='none';
+  }else{
+    $('loginOverlay').style.display='flex';
+    setTimeout(()=>$('loginPass').focus(),200);
+  }
+  $('loginPass').addEventListener('keydown',e=>{
+    if(e.key==='Enter') checkLogin();
   });
 }
 
